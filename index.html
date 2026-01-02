@@ -107,26 +107,31 @@ body {
 </div>
 
 <script>
-function updateClock() {
-    const now = new Date();
+ // JavaScript 負責驅動時間
+        function updateClock() {
+            const now = new Date();
+            
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
 
-    const seconds = now.getSeconds();
-    const minutes = now.getMinutes();
-    const hours = now.getHours();
+            // 計算旋轉角度
+            const secondDeg = (seconds / 60) * 360;
+            const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
+            const hourDeg = ((hours % 12 + minutes / 60) / 12) * 360;
 
-    document.getElementById('second').style.transform =
-        `rotate(${seconds * 6}deg)`;
+            // 套用 CSS 旋轉
+            document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+            document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
+            document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+        }
 
-    document.getElementById('minute').style.transform =
-        `rotate(${(minutes + seconds / 60) * 6}deg)`;
-
-    document.getElementById('hour').style.transform =
-        `rotate(${(hours % 12 + minutes / 60) * 30}deg)`;
-}
-
-setInterval(updateClock, 1000);
-updateClock();
+        // 每秒執行一次
+        setInterval(updateClock, 1000);
+        
+        // 初始執行一次避免延遲
 </script>
 
 </body>
 </html>
+
