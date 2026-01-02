@@ -1,30 +1,39 @@
-<!DOCTYPE html>
+好的！已經幫你把時鐘改成適合暗黑模式的版本：
+
+整體黑底（深黑 + 微漸層）
+白字/白指針（高對比，閱讀舒適）
+保留現代玻璃態效果，但調整為暗色調（backdrop-filter 更自然）
+指針改用白色/淺灰，秒針保留紅色但調暗（避免太刺眼）
+數字清晰白色，帶輕微陰影增加立體感
+
+暗黑模式完整程式碼（2026 風格）
+HTML<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（帶數字）</title>
+    <title>2026 現代類比時鐘（暗黑模式）</title>
     <style>
         body {
             margin: 0;
             height: 100vh;
             display: grid;
             place-items: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             font-family: system-ui, -apple-system, sans-serif;
         }
 
         .clock {
             width: 360px;
             height: 360px;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(30, 30, 46, 0.35);  /* 深色半透明 */
             border-radius: 50%;
             position: relative;
             box-shadow: 
-                0 8px 32px rgba(0,0,0,0.25),
-                inset 0 0 20px rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.18);
+                0 8px 32px rgba(0,0,0,0.6),
+                inset 0 0 20px rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
         }
 
         .clock::before,
@@ -33,22 +42,21 @@
             position: absolute;
             inset: 0;
             border-radius: 50%;
-            z-index: 1;
         }
 
         .clock::after {
-            inset: 12px;
-            background: rgba(0,0,0,0.15);
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+            inset: 14px;
+            background: rgba(0,0,0,0.4);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* 輕微刻度（可選） */
+        /* 輕微刻度（白色） */
         .clock::before {
             background: 
                 repeating-conic-gradient(
                     from 0deg,
                     transparent 0deg 5.9deg,
-                    #fff8 6deg 6deg,
+                    rgba(255,255,255,0.15) 6deg 6deg,
                     transparent 6.1deg 30deg
                 );
         }
@@ -56,14 +64,14 @@
         .center-dot {
             width: 18px;
             height: 18px;
-            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            background: linear-gradient(45deg, #ff6b6b88, #ff8e5388);
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             translate: -50% -50%;
             z-index: 20;
-            box-shadow: 0 0 15px rgba(255,107,107,0.7);
+            box-shadow: 0 0 15px rgba(255,107,107,0.4);
         }
 
         .hand {
@@ -75,10 +83,10 @@
             transition: transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1);
         }
 
-        .hour   { width: 10px;  height: 85px;  background: #1a1a1a; margin-left: -5px;  z-index: 5; }
-        .minute { width: 7px;   height: 115px; background: #333;    margin-left: -3.5px; z-index: 4; }
-        .second { width: 3px;   height: 130px; background: #ff3b30; margin-left: -1.5px; z-index: 6; 
-                  filter: drop-shadow(0 0 8px #ff3b30aa); }
+        .hour   { width: 10px;  height: 85px;  background: #e0e0e0; margin-left: -5px;  z-index: 5; }
+        .minute { width: 7px;   height: 115px; background: #cccccc; margin-left: -3.5px; z-index: 4; }
+        .second { width: 3px;   height: 130px; background: #ff4d4d; margin-left: -1.5px; z-index: 6; 
+                  filter: drop-shadow(0 0 8px #ff4d4daa); }
 
         .hand::after {
             content: '';
@@ -92,7 +100,7 @@
             translate: -50% 0;
         }
 
-        /* 新增：1~12 數字 */
+        /* 1~12 數字 - 白色高對比 */
         .number {
             position: absolute;
             width: 100%;
@@ -100,15 +108,15 @@
             text-align: center;
             font-size: 28px;
             font-weight: 700;
-            color: rgba(255,255,255,0.9);
-            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            color: #ffffff;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.7);
             pointer-events: none;
             user-select: none;
         }
 
         .number span {
             position: absolute;
-            top: 12px;          /* 距離邊緣距離，可調整 */
+            top: 12px;
             left: 50%;
             transform: translateX(-50%);
             width: 40px;
@@ -144,7 +152,6 @@
 <script>
 function updateClock() {
     const now = new Date();
-    
     const s = now.getSeconds();
     const m = now.getMinutes();
     const h = now.getHours();
@@ -163,3 +170,11 @@ updateClock();
 </script>
 </body>
 </html>
+暗黑模式參考效果（類似風格）
+以下是網路上常見的暗黑類比時鐘示意，給你看看感覺：
+shutterstock.comdreamstime.comdreamstime.compngtree.com
+
+
+
+直接複製上面程式碼就能用，很適合放在深色主題的網頁裡！
+如果想再調整（例如秒針改藍色、數字更大、或加發光效果），隨時告訴我喔～ 😊1.3秒快速4 sources
