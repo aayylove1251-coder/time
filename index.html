@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 現代類比時鐘（帶數字）</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .clock {
+            width: 360px;
+            height: 360px;
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.25),
+                inset 0 0 20px rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.18);
+        }
+
+        .clock::before,
+        .clock::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .clock::after {
+            inset: 12px;
+            background: rgba(0,0,0,0.15);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+        }
+
+        /* 輕微刻度（可選） */
+        .clock::before {
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    transparent 0deg 5.9deg,
+                    #fff8 6deg 6deg,
+                    transparent 6.1deg 30deg
+                );
+        }
+
+        .center-dot {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            translate: -50% -50%;
+            z-index: 20;
+            box-shadow: 0 0 15px rgba(255,107,107,0.7);
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px 10px 0 0;
+            transition: transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1);
+        }
+
+        .hour   { width: 10px;  height: 85px;  background: #1a1a1a; margin-left: -5px;  z-index: 5; }
+        .minute { width: 7px;   height: 115px; background: #333;    margin-left: -3.5px; z-index: 4; }
+        .second { width: 3px;   height: 130px; background: #ff3b30; margin-left: -1.5px; z-index: 6; 
+                  filter: drop-shadow(0 0 8px #ff3b30aa); }
+
+        .hand::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: inherit;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            translate: -50% 0;
+        }
+
+        /* 新增：1~12 數字 */
+        .number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .number span {
+            position: absolute;
+            top: 12px;          /* 距離邊緣距離，可調整 */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="clock">
+    <div class="center-dot"></div>
+    
+    <!-- 1~12 數字 -->
+    <div class="number">
+        <span style="transform: rotate(0deg) translateY(-148px) rotate(0deg);">12</span>
+        <span style="transform: rotate(30deg) translateY(-148px) rotate(-30deg);">1</span>
+        <span style="transform: rotate(60deg) translateY(-148px) rotate(-60deg);">2</span>
+        <span style="transform: rotate(90deg) translateY(-148px) rotate(-90deg);">3</span>
+        <span style="transform: rotate(120deg) translateY(-148px) rotate(-120deg);">4</span>
+        <span style="transform: rotate(150deg) translateY(-148px) rotate(-150deg);">5</span>
+        <span style="transform: rotate(180deg) translateY(-148px) rotate(-180deg);">6</span>
+        <span style="transform: rotate(210deg) translateY(-148px) rotate(-210deg);">7</span>
+        <span style="transform: rotate(240deg) translateY(-148px) rotate(-240deg);">8</span>
+        <span style="transform: rotate(270deg) translateY(-148px) rotate(-270deg);">9</span>
+        <span style="transform: rotate(300deg) translateY(-148px) rotate(-300deg);">10</span>
+        <span style="transform: rotate(330deg) translateY(-148px) rotate(-330deg);">11</span>
+    </div>
+
+    <div class="hand hour"    id="hour"></div>
+    <div class="hand minute"  id="minute"></div>
+    <div class="hand second"  id="second"></div>
+</div>
+
+<script>
+function updateClock() {
+    const now = new Date();
+    
+    const s = now.getSeconds();
+    const m = now.getMinutes();
+    const h = now.getHours();
+
+    const secondDeg = s * 6;
+    const minuteDeg = m * 6 + s * 0.1;
+    const hourDeg   = (h % 12) * 30 + m * 0.5;
+
+    document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+    document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
+    document.getElementById('hour').style.transform   = `rotate(${hourDeg}deg)`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+</body>
+</html>
