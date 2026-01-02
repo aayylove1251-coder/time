@@ -1,18 +1,9 @@
-好的！已經幫你把時鐘改成適合暗黑模式的版本：
-
-整體黑底（深黑 + 微漸層）
-白字/白指針（高對比，閱讀舒適）
-保留現代玻璃態效果，但調整為暗色調（backdrop-filter 更自然）
-指針改用白色/淺灰，秒針保留紅色但調暗（避免太刺眼）
-數字清晰白色，帶輕微陰影增加立體感
-
-暗黑模式完整程式碼（2026 風格）
-HTML<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（暗黑模式）</title>
+    <title>2026 現代類比時鐘（暗黑模式 - 數字精準對齊）</title>
     <style>
         body {
             margin: 0;
@@ -24,9 +15,9 @@ HTML<!DOCTYPE html>
         }
 
         .clock {
-            width: 360px;
-            height: 360px;
-            background: rgba(30, 30, 46, 0.35);  /* 深色半透明 */
+            width: 380px;          /* 稍微加大一點，讓數字有更多空間 */
+            height: 380px;
+            background: rgba(30, 30, 46, 0.35);
             border-radius: 50%;
             position: relative;
             box-shadow: 
@@ -50,7 +41,6 @@ HTML<!DOCTYPE html>
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* 輕微刻度（白色） */
         .clock::before {
             background: 
                 repeating-conic-gradient(
@@ -83,9 +73,9 @@ HTML<!DOCTYPE html>
             transition: transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1);
         }
 
-        .hour   { width: 10px;  height: 85px;  background: #e0e0e0; margin-left: -5px;  z-index: 5; }
-        .minute { width: 7px;   height: 115px; background: #cccccc; margin-left: -3.5px; z-index: 4; }
-        .second { width: 3px;   height: 130px; background: #ff4d4d; margin-left: -1.5px; z-index: 6; 
+        .hour   { width: 10px;  height: 90px;  background: #e0e0e0; margin-left: -5px;  z-index: 5; }
+        .minute { width: 7px;   height: 122px; background: #cccccc; margin-left: -3.5px; z-index: 4; }
+        .second { width: 3px;   height: 138px; background: #ff4d4d; margin-left: -1.5px; z-index: 6; 
                   filter: drop-shadow(0 0 8px #ff4d4daa); }
 
         .hand::after {
@@ -100,26 +90,31 @@ HTML<!DOCTYPE html>
             translate: -50% 0;
         }
 
-        /* 1~12 數字 - 白色高對比 */
+        /* 修正數字：每個數字獨立 div + 精準角度定位 */
+        .numbers {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
         .number {
             position: absolute;
             width: 100%;
             height: 100%;
             text-align: center;
             font-size: 28px;
-            font-weight: 700;
+            font-weight: bold;
             color: #ffffff;
-            text-shadow: 0 1px 6px rgba(0,0,0,0.7);
-            pointer-events: none;
-            user-select: none;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
         }
 
         .number span {
             position: absolute;
-            top: 12px;
+            top: 18px;                    /* 距離邊緣距離，可微調 16~22px */
             left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
+            transform: translate(-50%, 0);
+            display: block;
+            width: 36px;
         }
     </style>
 </head>
@@ -128,20 +123,20 @@ HTML<!DOCTYPE html>
 <div class="clock">
     <div class="center-dot"></div>
     
-    <!-- 1~12 數字 -->
-    <div class="number">
-        <span style="transform: rotate(0deg) translateY(-148px) rotate(0deg);">12</span>
-        <span style="transform: rotate(30deg) translateY(-148px) rotate(-30deg);">1</span>
-        <span style="transform: rotate(60deg) translateY(-148px) rotate(-60deg);">2</span>
-        <span style="transform: rotate(90deg) translateY(-148px) rotate(-90deg);">3</span>
-        <span style="transform: rotate(120deg) translateY(-148px) rotate(-120deg);">4</span>
-        <span style="transform: rotate(150deg) translateY(-148px) rotate(-150deg);">5</span>
-        <span style="transform: rotate(180deg) translateY(-148px) rotate(-180deg);">6</span>
-        <span style="transform: rotate(210deg) translateY(-148px) rotate(-210deg);">7</span>
-        <span style="transform: rotate(240deg) translateY(-148px) rotate(-240deg);">8</span>
-        <span style="transform: rotate(270deg) translateY(-148px) rotate(-270deg);">9</span>
-        <span style="transform: rotate(300deg) translateY(-148px) rotate(-300deg);">10</span>
-        <span style="transform: rotate(330deg) translateY(-148px) rotate(-330deg);">11</span>
+    <!-- 數字容器 -->
+    <div class="numbers">
+        <div class="number" style="transform: rotate(0deg);"><span>12</span></div>
+        <div class="number" style="transform: rotate(30deg);"><span>1</span></div>
+        <div class="number" style="transform: rotate(60deg);"><span>2</span></div>
+        <div class="number" style="transform: rotate(90deg);"><span>3</span></div>
+        <div class="number" style="transform: rotate(120deg);"><span>4</span></div>
+        <div class="number" style="transform: rotate(150deg);"><span>5</span></div>
+        <div class="number" style="transform: rotate(180deg);"><span>6</span></div>
+        <div class="number" style="transform: rotate(210deg);"><span>7</span></div>
+        <div class="number" style="transform: rotate(240deg);"><span>8</span></div>
+        <div class="number" style="transform: rotate(270deg);"><span>9</span></div>
+        <div class="number" style="transform: rotate(300deg);"><span>10</span></div>
+        <div class="number" style="transform: rotate(330deg);"><span>11</span></div>
     </div>
 
     <div class="hand hour"    id="hour"></div>
@@ -170,11 +165,3 @@ updateClock();
 </script>
 </body>
 </html>
-暗黑模式參考效果（類似風格）
-以下是網路上常見的暗黑類比時鐘示意，給你看看感覺：
-shutterstock.comdreamstime.comdreamstime.compngtree.com
-
-
-
-直接複製上面程式碼就能用，很適合放在深色主題的網頁裡！
-如果想再調整（例如秒針改藍色、數字更大、或加發光效果），隨時告訴我喔～ 😊1.3秒快速4 sources
