@@ -143,34 +143,32 @@
 </div>
 
 <script>
-function updateClock() {
-    const now = new Date();
-    
-    const s = now.getSeconds();
-    const m = now.getMinutes();
-    const h = now.getHours();
+ // JavaScript 負責驅動時間
+        function updateClock() {
+            const now = new Date();
+            
+            const seconds = now.getSeconds();
+            const minutes = now.getMinutes();
+            const hours = now.getHours();
 
-    const secondDeg = s * 6;
-    const minuteDeg = m * 6 + s * 0.1;
-    const hourDeg   = (h % 12) * 30 + m * 0.5;
+            // 計算旋轉角度
+            const secondDeg = (seconds / 60) * 360;
+            const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
+            const hourDeg = ((hours % 12 + minutes / 60) / 12) * 360;
 
-    const secondHand = document.getElementById('second');
-    
-    // 關鍵：當秒數是 0 時，移除過渡（避免逆時針飛一圈）
-    if (s === 0) {
-        secondHand.style.transition = 'none';           // 瞬間跳到 0°
-    } else {
-        secondHand.style.transition = 'transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1)'; // 恢復平滑
-    }
+            // 套用 CSS 旋轉
+            document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+            document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
+            document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
+        }
 
-    secondHand.style.transform = `rotate(${secondDeg}deg)`;
-    document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
-    document.getElementById('hour').style.transform   = `rotate(${hourDeg}deg)`;
-}
-
-setInterval(updateClock, 1000);
-updateClock();  // 初始呼叫
+        // 每秒執行一次
+        setInterval(updateClock, 1000);
+        
+        // 初始執行一次避免延遲
+        updateClock();
 </script>
 </body>
 </html>
+
 
