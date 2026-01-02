@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（暗黑模式 - 數字精準對齊）</title>
+    <title>2026 現代類比時鐘（暗黑模式 - 數字完美對齊）</title>
     <style>
         body {
             margin: 0;
@@ -11,12 +11,13 @@
             display: grid;
             place-items: center;
             background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .clock {
-            width: 380px;          /* 稍微加大一點，讓數字有更多空間 */
-            height: 380px;
+            --size: 380px;          /* 統一控制大小，改這個就好 */
+            width: var(--size);
+            height: var(--size);
             background: rgba(30, 30, 46, 0.35);
             border-radius: 50%;
             position: relative;
@@ -41,14 +42,13 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .clock::before {
-            background: 
-                repeating-conic-gradient(
-                    from 0deg,
-                    transparent 0deg 5.9deg,
-                    rgba(255,255,255,0.15) 6deg 6deg,
-                    transparent 6.1deg 30deg
-                );
+        .clock::before {  /* 刻度 */
+            background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg 5.9deg,
+                rgba(255,255,255,0.15) 6deg 6deg,
+                transparent 6.1deg 30deg
+            );
         }
 
         .center-dot {
@@ -73,9 +73,9 @@
             transition: transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1);
         }
 
-        .hour   { width: 10px;  height: 90px;  background: #e0e0e0; margin-left: -5px;  z-index: 5; }
-        .minute { width: 7px;   height: 122px; background: #cccccc; margin-left: -3.5px; z-index: 4; }
-        .second { width: 3px;   height: 138px; background: #ff4d4d; margin-left: -1.5px; z-index: 6; 
+        .hour   { --hand-width: 10px;  width: var(--hand-width);  height: calc(var(--size) * 0.24); background: #e0e0e0; margin-left: calc(var(--hand-width) / -2); z-index: 5; }
+        .minute { --hand-width: 7px;   width: var(--hand-width);  height: calc(var(--size) * 0.32); background: #cccccc; margin-left: calc(var(--hand-width) / -2); z-index: 4; }
+        .second { --hand-width: 3px;   width: var(--hand-width);  height: calc(var(--size) * 0.36); background: #ff4d4d; margin-left: calc(var(--hand-width) / -2); z-index: 6; 
                   filter: drop-shadow(0 0 8px #ff4d4daa); }
 
         .hand::after {
@@ -90,7 +90,7 @@
             translate: -50% 0;
         }
 
-        /* 修正數字：每個數字獨立 div + 精準角度定位 */
+        /* 數字 - 使用 calc 完美對齊 */
         .numbers {
             position: absolute;
             inset: 0;
@@ -99,10 +99,9 @@
 
         .number {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             text-align: center;
-            font-size: 28px;
+            font-size: calc(var(--size) * 0.074);  /* 約28px 在380px時鐘 */
             font-weight: bold;
             color: #ffffff;
             text-shadow: 0 1px 8px rgba(0,0,0,0.8);
@@ -110,11 +109,10 @@
 
         .number span {
             position: absolute;
-            top: 18px;                    /* 距離邊緣距離，可微調 16~22px */
+            top: calc(var(--size) * 0.05);          /* 距離邊緣約5% */
             left: 50%;
-            transform: translate(-50%, 0);
+            transform: translateX(-50%);
             display: block;
-            width: 36px;
         }
     </style>
 </head>
@@ -123,7 +121,6 @@
 <div class="clock">
     <div class="center-dot"></div>
     
-    <!-- 數字容器 -->
     <div class="numbers">
         <div class="number" style="transform: rotate(0deg);"><span>12</span></div>
         <div class="number" style="transform: rotate(30deg);"><span>1</span></div>
@@ -165,3 +162,4 @@ updateClock();
 </script>
 </body>
 </html>
+
