@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（暗黑模式 - 數字永遠正向）</title>
+    <title>2026 現代類比時鐘（暗黑模式 - 數字均勻散開）</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,7 @@
         }
 
         .clock {
-            --size: 380px;
+            --size: 400px;          /* 加大一點讓數字更舒展，可改回380px */
             width: var(--size);
             height: var(--size);
             background: rgba(30, 30, 46, 0.35);
@@ -90,7 +90,7 @@
             translate: -50% 0;
         }
 
-        /* 數字永遠正向、不旋轉 */
+        /* 數字 - 永遠正向 + 加大外圍距離 */
         .numbers {
             position: absolute;
             inset: 0;
@@ -102,17 +102,17 @@
             inset: 0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;  /* 靠上 */
+            align-items: flex-start;
         }
 
         .number span {
             position: absolute;
-            top: calc(var(--size) * 0.05);  /* 距離邊緣約5%，可調 0.04~0.07 */
-            font-size: calc(var(--size) * 0.074);
+            top: calc(var(--size) * 0.08);          /* 關鍵！加大到8%，數字更往外散 */
+            font-size: calc(var(--size) * 0.082);   /* 字體稍大一點，看起來更均勻 */
             font-weight: bold;
             color: #ffffff;
             text-shadow: 0 1px 8px rgba(0,0,0,0.8);
-            transform: translateX(-50%);  /* 只水平置中 */
+            transform: translateX(-50%);
             white-space: nowrap;
         }
     </style>
