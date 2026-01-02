@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（暗黑模式 - 數字完美對齊）</title>
+    <title>2026 現代類比時鐘（暗黑模式 - 數字永遠正向）</title>
     <style>
         body {
             margin: 0;
@@ -15,7 +15,7 @@
         }
 
         .clock {
-            --size: 380px;          /* 統一控制大小，改這個就好 */
+            --size: 380px;
             width: var(--size);
             height: var(--size);
             background: rgba(30, 30, 46, 0.35);
@@ -42,7 +42,7 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
 
-        .clock::before {  /* 刻度 */
+        .clock::before {
             background: repeating-conic-gradient(
                 from 0deg,
                 transparent 0deg 5.9deg,
@@ -90,7 +90,7 @@
             translate: -50% 0;
         }
 
-        /* 數字 - 使用 calc 完美對齊 */
+        /* 數字永遠正向、不旋轉 */
         .numbers {
             position: absolute;
             inset: 0;
@@ -100,19 +100,20 @@
         .number {
             position: absolute;
             inset: 0;
-            text-align: center;
-            font-size: calc(var(--size) * 0.074);  /* 約28px 在380px時鐘 */
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;  /* 靠上 */
         }
 
         .number span {
             position: absolute;
-            top: calc(var(--size) * 0.05);          /* 距離邊緣約5% */
-            left: 50%;
-            transform: translateX(-50%);
-            display: block;
+            top: calc(var(--size) * 0.05);  /* 距離邊緣約5%，可調 0.04~0.07 */
+            font-size: calc(var(--size) * 0.074);
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
+            transform: translateX(-50%);  /* 只水平置中 */
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -162,4 +163,3 @@ updateClock();
 </script>
 </body>
 </html>
-
