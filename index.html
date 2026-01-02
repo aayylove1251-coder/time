@@ -145,6 +145,7 @@
 <script>
 function updateClock() {
     const now = new Date();
+    
     const s = now.getSeconds();
     const m = now.getMinutes();
     const h = now.getHours();
@@ -153,13 +154,23 @@ function updateClock() {
     const minuteDeg = m * 6 + s * 0.1;
     const hourDeg   = (h % 12) * 30 + m * 0.5;
 
-    document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
+    const secondHand = document.getElementById('second');
+    
+    // 關鍵：當秒數是 0 時，移除過渡（避免逆時針飛一圈）
+    if (s === 0) {
+        secondHand.style.transition = 'none';           // 瞬間跳到 0°
+    } else {
+        secondHand.style.transition = 'transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1)'; // 恢復平滑
+    }
+
+    secondHand.style.transform = `rotate(${secondDeg}deg)`;
     document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
     document.getElementById('hour').style.transform   = `rotate(${hourDeg}deg)`;
 }
 
 setInterval(updateClock, 1000);
-updateClock();
+updateClock();  // 初始呼叫
 </script>
 </body>
 </html>
+
