@@ -1,174 +1,132 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 現代類比時鐘（暗黑模式 - 數字均勻散開）</title>
-    <style>
-        body {
-            margin: 0;
-            height: 100vh;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-        }
+<meta charset="UTF-8">
+<title>暗黑模式類比時鐘</title>
 
-        .clock {
-            --size: 400px;          /* 加大一點讓數字更舒展，可改回380px */
-            width: var(--size);
-            height: var(--size);
-            background: rgba(30, 30, 46, 0.35);
-            border-radius: 50%;
-            position: relative;
-            box-shadow: 
-                0 8px 32px rgba(0,0,0,0.6),
-                inset 0 0 20px rgba(255,255,255,0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
+<style>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #0f0f0f; /* 暗黑背景 */
+    margin: 0;
+}
 
-        .clock::before,
-        .clock::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-        }
+/* 時鐘本體 */
+.clock {
+    width: 320px;
+    height: 320px;
+    background-color: #000;
+    border: 8px solid #fff;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255,255,255,0.1);
+}
 
-        .clock::after {
-            inset: 14px;
-            background: rgba(0,0,0,0.4);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
+/* 圓心 */
+.clock::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background-color: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
 
-        .clock::before {
-            background: repeating-conic-gradient(
-                from 0deg,
-                transparent 0deg 5.9deg,
-                rgba(255,255,255,0.15) 6deg 6deg,
-                transparent 6.1deg 30deg
-            );
-        }
+/* 數字 */
+.number {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 20px;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+}
 
-        .center-dot {
-            width: 18px;
-            height: 18px;
-            background: linear-gradient(45deg, #ff6b6b88, #ff8e5388);
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            translate: -50% -50%;
-            z-index: 20;
-            box-shadow: 0 0 15px rgba(255,107,107,0.4);
-        }
+.number span {
+    display: block;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-        .hand {
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: bottom center;
-            border-radius: 10px 10px 0 0;
-            transition: transform 0.4s cubic-bezier(0.4, 2.0, 0.2, 1);
-        }
+/* 指針共用 */
+.hand {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform-origin: bottom;
+    border-radius: 10px;
+}
 
-        .hour   { --hand-width: 10px;  width: var(--hand-width);  height: calc(var(--size) * 0.24); background: #e0e0e0; margin-left: calc(var(--hand-width) / -2); z-index: 5; }
-        .minute { --hand-width: 7px;   width: var(--hand-width);  height: calc(var(--size) * 0.32); background: #cccccc; margin-left: calc(var(--hand-width) / -2); z-index: 4; }
-        .second { --hand-width: 3px;   width: var(--hand-width);  height: calc(var(--size) * 0.36); background: #ff4d4d; margin-left: calc(var(--hand-width) / -2); z-index: 6; 
-                  filter: drop-shadow(0 0 8px #ff4d4daa); }
+.hour {
+    width: 8px;
+    height: 70px;
+    background: #fff;
+    margin-left: -4px;
+}
 
-        .hand::after {
-            content: '';
-            width: 12px;
-            height: 12px;
-            background: inherit;
-            border-radius: 50%;
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            translate: -50% 0;
-        }
+.minute {
+    width: 5px;
+    height: 100px;
+    background: #ccc;
+    margin-left: -2.5px;
+}
 
-        /* 數字 - 永遠正向 + 加大外圍距離 */
-        .numbers {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-        }
-
-        .number {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-        }
-
-        .number span {
-            position: absolute;
-            top: calc(var(--size) * 0.08);          /* 關鍵！加大到8%，數字更往外散 */
-            font-size: calc(var(--size) * 0.082);   /* 字體稍大一點，看起來更均勻 */
-            font-weight: bold;
-            color: #ffffff;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.8);
-            transform: translateX(-50%);
-            white-space: nowrap;
-        }
-    </style>
+.second {
+    width: 2px;
+    height: 120px;
+    background: #ff3b30;
+    margin-left: -1px;
+}
+</style>
 </head>
+
 <body>
 
 <div class="clock">
-    <div class="center-dot"></div>
-    
-    <div class="numbers">
-        <div class="number" style="transform: rotate(0deg);"><span>12</span></div>
-        <div class="number" style="transform: rotate(30deg);"><span>1</span></div>
-        <div class="number" style="transform: rotate(60deg);"><span>2</span></div>
-        <div class="number" style="transform: rotate(90deg);"><span>3</span></div>
-        <div class="number" style="transform: rotate(120deg);"><span>4</span></div>
-        <div class="number" style="transform: rotate(150deg);"><span>5</span></div>
-        <div class="number" style="transform: rotate(180deg);"><span>6</span></div>
-        <div class="number" style="transform: rotate(210deg);"><span>7</span></div>
-        <div class="number" style="transform: rotate(240deg);"><span>8</span></div>
-        <div class="number" style="transform: rotate(270deg);"><span>9</span></div>
-        <div class="number" style="transform: rotate(300deg);"><span>10</span></div>
-        <div class="number" style="transform: rotate(330deg);"><span>11</span></div>
+    <!-- 數字 -->
+    <div class="number">
+        <span style="top: 10px;">12</span>
+        <span style="right: 10px; top: 50%; transform: translateY(-50%);">3</span>
+        <span style="bottom: 10px;">6</span>
+        <span style="left: 10px; top: 50%; transform: translateY(-50%);">9</span>
     </div>
 
-    <div class="hand hour"    id="hour"></div>
-    <div class="hand minute"  id="minute"></div>
-    <div class="hand second"  id="second"></div>
+    <!-- 指針 -->
+    <div class="hand hour" id="hour"></div>
+    <div class="hand minute" id="minute"></div>
+    <div class="hand second" id="second"></div>
 </div>
 
 <script>
- // JavaScript 負責驅動時間
-        function updateClock() {
-            const now = new Date();
-            
-            const seconds = now.getSeconds();
-            const minutes = now.getMinutes();
-            const hours = now.getHours();
+function updateClock() {
+    const now = new Date();
 
-            // 計算旋轉角度
-            const secondDeg = (seconds / 60) * 360;
-            const minuteDeg = ((minutes + seconds / 60) / 60) * 360;
-            const hourDeg = ((hours % 12 + minutes / 60) / 12) * 360;
+    const seconds = now.getSeconds();
+    const minutes = now.getMinutes();
+    const hours = now.getHours();
 
-            // 套用 CSS 旋轉
-            document.getElementById('second').style.transform = `rotate(${secondDeg}deg)`;
-            document.getElementById('minute').style.transform = `rotate(${minuteDeg}deg)`;
-            document.getElementById('hour').style.transform = `rotate(${hourDeg}deg)`;
-        }
+    document.getElementById('second').style.transform =
+        `rotate(${seconds * 6}deg)`;
 
-        // 每秒執行一次
-        setInterval(updateClock, 1000);
-        
-        // 初始執行一次避免延遲
-        updateClock();
+    document.getElementById('minute').style.transform =
+        `rotate(${(minutes + seconds / 60) * 6}deg)`;
+
+    document.getElementById('hour').style.transform =
+        `rotate(${(hours % 12 + minutes / 60) * 30}deg)`;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
 </script>
+
 </body>
 </html>
-
-
