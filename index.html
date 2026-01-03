@@ -102,7 +102,25 @@
             controls.update();
             renderer.render(scene, camera);
         }
+
+        // 在 loader.load 加入進度追蹤
+loader.load('./clock.glb', (gltf) => {
+    const model = gltf.scene;
+    scene.add(model);
+    document.getElementById('info').style.display = 'none'; // 載入完成就隱藏文字
+    
+    hourHand = model.getObjectByName('Hour');
+    minuteHand = model.getObjectByName('Minute');
+    secondHand = model.getObjectByName('Second');
+    
+    animate();
+}, (xhr) => {
+    // 顯示載入進度
+    const percent = Math.round((xhr.loaded / xhr.total) * 100);
+    document.getElementById('info').innerText = `載入中: ${percent}%`;
+});
     </script>
 </body>
 </html>
+
 
