@@ -104,10 +104,10 @@ function animate() {
     const m = now.getMinutes();
     const h = now.getHours();
 
-    if (secondHand) secondHand.rotation.z = -s * Math.PI / 30;
-    if (minuteHand) minuteHand.rotation.z = -m * Math.PI / 30;
-    if (hourHand) {
-        hourHand.rotation.z =
+    if (Sphere) Sphere.rotation.z = -s * Math.PI / 30;
+    if (Mouth) Mouth.rotation.z = -m * Math.PI / 30;
+    if (Hour) {
+        Hour.rotation.z =
             -((h % 12) * Math.PI / 6 + m * Math.PI / 360);
     }
 
@@ -123,6 +123,7 @@ function onResize() {
 
 </body>
 </html>
+
 
 
 
