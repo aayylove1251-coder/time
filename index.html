@@ -1,105 +1,206 @@
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D 時鐘與模型展示</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-/* ---------- 時鐘 Canvas ---------- */
-const clockCanvas = document.getElementById('clockCanvas');
-const ctx = clockCanvas.getContext('2d');
-
-function resizeClock() {
-  clockCanvas.width = clockCanvas.clientWidth;
-  clockCanvas.height = clockCanvas.clientHeight;
-}
-resizeClock();
-window.addEventListener('resize', resizeClock);
-
-function drawClock() {
-  const w = clockCanvas.width;
-  const h = clockCanvas.height;
-  const r = Math.min(w, h) / 2 - 10;
-
-  ctx.clearRect(0, 0, w, h);
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-
-  ctx.strokeStyle = 'white';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.arc(0, 0, r, 0, Math.PI * 2);
-  ctx.stroke();
-
-  const now = new Date();
-  const sec = now.getSeconds();
-  const min = now.getMinutes();
-  const hr = now.getHours() % 12;
-
-  function hand(angle, len, width) {
-    ctx.save();
-    ctx.rotate(angle);
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(0, -len);
-    ctx.stroke();
-    ctx.restore();
+  <!-- Three.js import map（給 main.js 用） -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+    }
   }
+  </script>
 
-  hand((Math.PI / 6) * hr + (Math.PI / 360) * min, r * 0.5, 6);
-  hand((Math.PI / 30) * min, r * 0.7, 4);
-  hand((Math.PI / 30) * sec, r * 0.9, 2);
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  ctx.restore();
-  requestAnimationFrame(drawClock);
-}
-drawClock();
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-/* ---------- Three.js 3D ---------- */
-const canvas = document.getElementById('modelCanvas');
-const scene = new THREE.Scene();
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      text-align: center;
+    }
 
-const camera = new THREE.PerspectiveCamera(
-  45,
-  canvas.clientWidth / canvas.clientHeight,
-  0.1,
-  100
-);
-camera.position.set(0, 1.5, 3);
+    h1 {
+      margin-bottom: 8px;
+      font-size: 2.4rem;
+    }
 
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-renderer.setPixelRatio(devicePixelRatio);
+    .subtitle {
+      opacity: 0.85;
+      margin-bottom: 30px;
+    }
 
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(3, 5, 3);
-scene.add(light);
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    .panels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
 
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+    .panel {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
 
-let model;
-const loader = new GLTFLoader();
+    .panel h2 {
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+    }
 
-document.getElementById('modelUpload').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
+    canvas {
+      width: 100%;
+      height: 380px;
+      display: block;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.25);
+    }
 
-  document.getElementById('fileName').textContent = file.name;
+    .controls {
+      margin-top: 28px;
+      padding: 18px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
 
-  const url = URL.createObjectURL(file);
-  loader.load(url, gltf => {
-    if (model) scene.remove(model);
-    model = gltf.scene;
-    scene.add(model);
-  });
-});
+    .group {
+      min-width: 160px;
+    }
 
-function animate() {
-  requestAnimationFrame(animate);
-  if (model) model.rotation.y += 0.01;
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .value {
+      margin-top: 4px;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.25);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: rgba(255,255,255,0.35);
+    }
+
+    .upload {
+      margin-top: 24px;
+    }
+
+    .upload label {
+      display: inline-block;
+      padding: 12px 22px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.25);
+      cursor: pointer;
+    }
+
+    .filename {
+      margin-top: 8px;
+      color: #ffd86b;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 30px;
+      opacity: 0.75;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <h1>3D 時鐘與模型展示</h1>
+    <p class="subtitle">即時時鐘 × Three.js 3D 模型</p>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>即時時鐘</h2>
+        <canvas id="clockCanvas"></canvas>
+      </div>
+
+      <div class="panel">
+        <h2>3D 模型</h2>
+        <canvas id="modelCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="upload">
+      <label>
+        上傳 3D 模型（.glb / .gltf）
+        <input type="file" id="modelUpload" accept=".glb,.gltf" hidden />
+      </label>
+      <div id="fileName" class="filename"></div>
+    </div>
+
+    <div class="controls">
+      <div class="group">
+        <label>旋轉速度</label>
+        <input type="range" id="rotationSpeed" min="0" max="2" step="0.1" value="1">
+        <div id="speedValue" class="value">1.0</div>
+      </div>
+
+      <div class="group">
+        <label>模型大小</label>
+        <input type="range" id="modelScale" min="0.1" max="3" step="0.1" value="1">
+        <div id="scaleValue" class="value">1.0</div>
+      </div>
+
+      <div class="group">
+        <label>&nbsp;</label>
+        <button id="autoRotateBtn">停用</button>
+        <button id="resetBtn" style="margin-left:6px;">重置</button>
+      </div>
+    </div>
+
+    <footer>
+      © 2024 Three.js Clock Demo
+    </footer>
+  </div>
+
+  <!-- 一定要放最後 -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
+
+
 
 
