@@ -43,53 +43,60 @@
         directionalLight.position.set(5, 5, 5);
         scene.add(directionalLight);
 
-        // 3. 載入模型
-        const loader = new THREE.GLTFLoader();
-        // 請確保你的檔名是 2025-11-12-099.glb 且放在同一資料夾
-        loader.load('2025-11-12-099.glb', function (gltf) {
-            clockModel = gltf.scene;
-            scene.add(clockModel);
-            document.getElementById('loading').style.display = 'none';
+   // 載入模型
+const loader = new THREE.GLTFLoader();
+loader.load('2025-11-12-099.glb', function (gltf) {
+    clockModel = gltf.scene;
+    scene.add(clockModel);
+    document.getElementById('loading').style.display = 'none';
 
-            // --- 重要：這裡需要根據你在 Blender 裡的命名來抓取指針 ---
-            // 假設你的指針分別命名為 "Hour", "Minute", "Second"
-            hourHand = clockModel.getObjectByName('Hour'); 
-            minuteHand = clockModel.getObjectByName('Minute');
-            secondHand = clockModel.getObjectByName('Second');
+    // 🕵️ 列印所有物件名稱，方便偵錯（可在瀏覽器 F12 看到）
+    clockModel.traverse((node) => {
+        console.log("發現物件名稱:", node.name);
+        
+        // 根據你模型的物件名稱進行比對 (請根據 Console 看到的名稱修改這裡)
+        if (node.name.includes("時針")) hourHand = node;
+        if (node.name.includes("分針")) minuteHand = node;
+        if (node.name.includes("秒針")) secondHand = node;
+    });
 
-            animate();
-        }, undefined, function (error) {
-            console.error('載入失敗：', error);
-        });
-
-        // 控制器 (可以用滑鼠旋轉看模型)
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // 如果抓不到名稱，這裡強行指定（假設是你的場景中特定順序的物件）
+    // 這裡需要你確認你的指針在 Blender 裡的名稱
+    if (!secondHand) {
+        console.warn("未偵測到指針名稱，請手動指定名稱或索引");
     }
 
-    function animate() {
-        requestAnimationFrame(animate);
+    animate();
+}, undefined, function (error) {
+    console.error('載入失敗：', error);
+});
 
-        // 更新時間邏輯
-        const now = new Date();
-        const s = now.getSeconds();
-        const m = now.getMinutes();
-        const h = now.getHours();
+function animate() {
+    requestAnimationFrame(animate);
 
-        // 旋轉模型中的指針 (軸向可能需要根據你的模型調整為 .x, .y 或 .z)
-        if (secondHand) secondHand.rotation.y = - (s * (Math.PI / 30));
-        if (minuteHand) minuteHand.rotation.y = - (m * (Math.PI / 30));
-        if (hourHand) hourHand.rotation.y = - ((h % 12) * (Math.PI / 6) + m * (Math.PI / 360));
+    const now = new Date();
+    const s = now.getSeconds();
+    const m = now.getMinutes();
+    const h = now.getHours();
 
-        renderer.render(scene, camera);
+    // 旋轉邏輯：請嘗試修改 .rotation.y 為 .x 或 .z，直到方向正確
+    // 大多數 Blender 匯出的模型，中心旋轉軸是 .y 或 .z
+    if (secondHand) {
+        secondHand.rotation.z = - (s * (Math.PI / 30)); 
+    }
+    if (minuteHand) {
+        minuteHand.rotation.z = - (m * (Math.PI / 30));
+    }
+    if (hourHand) {
+        hourHand.rotation.z = - ((h % 12) * (Math.PI / 6) + m * (Math.PI / 360));
     }
 
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.render(scene, camera);
+}
     });
 
     init();
 </script>
 </body>
 </html>
+
