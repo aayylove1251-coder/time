@@ -85,6 +85,24 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
     });
+    loader.load('2025-11-12-099.glb', function (gltf) {
+            const model = gltf.scene;
+            scene.add(model);
+            
+            // 這裡我直接對應你模型中現有的物件名稱來測試
+            hourHand = model.getObjectByName('Hour');    // 暫時讓 Hour 當時針
+            minuteHand = model.getObjectByName('Mouth'); // 暫時讓 Mouth 當分針
+            secondHand = model.getObjectByName('Sphere'); // 暫時讓 Sphere 當秒針
+
+            if(hourHand && minuteHand && secondHand) {
+                console.log("成功連結物件！時鐘準備運作。");
+            } else {
+                console.log("找不到指定物件，請檢查名稱是否完全正確。");
+            }
+
+            animate();
+        });
 </script>
 </body>
 </html>
+
