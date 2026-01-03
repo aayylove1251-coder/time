@@ -1,61 +1,316 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<title>My first three.js</title>
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #000;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 時鐘模型</title>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.162.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.162.0/examples/jsm/"
+        }
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .clock-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+        
+        .clock-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-title {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        #clockCanvas {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        #modelCanvas {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 150px;
+        }
+        
+        .control-label {
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .value-display {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .upload-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .upload-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            color: #ffcc00;
+            font-weight: bold;
+        }
+        
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .instructions ul {
+            text-align: left;
+            list-style-position: inside;
+            line-height: 1.6;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        
+        footer {
+            margin-top: 30px;
+            padding: 20px;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .clock-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .clock-section {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>3D 時鐘與模型展示</h1>
+        <p class="subtitle">即時時鐘顯示與互動式 3D 模型旋轉</p>
+        
+        <div class="clock-container">
+            <div class="clock-section">
+                <h2 class="section-title">即時時鐘</h2>
+                <canvas id="clockCanvas"></canvas>
+            </div>
+            
+            <div class="clock-section">
+                <h2 class="section-title">3D 模型展示</h2>
+                <canvas id="modelCanvas"></canvas>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <h3>上傳您的 3D 模型</h3>
+            <label class="upload-btn">
+                選擇模型檔案 (.glb, .gltf)
+                <input type="file" id="modelUpload" accept=".glb,.gltf" style="display: none;">
+            </label>
+            <div id="fileName" class="file-name"></div>
+            <p>支援格式：GLB, GLTF (建議使用 GLB 格式)</p>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-label">旋轉速度</div>
+                <div class="slider-container">
+                    <input type="range" id="rotationSpeed" min="0" max="2" step="0.1" value="1">
+                    <span id="speedValue" class="value-display">1.0</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">模型大小</div>
+                <div class="slider-container">
+                    <input type="range" id="modelScale" min="0.1" max="3" step="0.1" value="1">
+                    <span id="scaleValue" class="value-display">1.0</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-label">自動旋轉</div>
+                <div class="buttons">
+                    <button id="autoRotateBtn">啟用</button>
+                    <button id="resetBtn">重置位置</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>使用說明：</h3>
+            <ul>
+                <li>點擊「選擇模型檔案」按鈕上傳您的 3D 模型（支援 .glb 或 .gltf 格式）</li>
+                <li>使用滑鼠拖曳可以旋轉 3D 模型視角</li>
+                <li>使用滑鼠滾輪可以縮放模型</li>
+                <li>調整「旋轉速度」控制模型自動旋轉的速度</li>
+                <li>調整「模型大小」控制模型的縮放比例</li>
+                <li>點擊「啟用/停用」控制是否自動旋轉</li>
+                <li>點擊「重置位置」將模型恢復到初始狀態</li>
+            </ul>
+        </div>
+        
+        <footer>
+            <p>© 2024 3D 時鐘模型展示 | 使用 Three.js 建立</p>
+        </footer>
+    </div>
 
-<!-- three.js 核心 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<script>
-/* 場景 */
-const scene = new THREE.Scene();
-
-/* 相機 */
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.z = 5;
-
-/* 渲染器 */
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-/* 方塊 */
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshNormalMaterial();
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
-
-/* 動畫 */
-function animate() {
-  requestAnimationFrame(animate);
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-  renderer.render(scene, camera);
-}
-animate();
-
-/* 視窗縮放 */
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
-
+    <script type="module" src="main.js"></script>
 </body>
 </html>
