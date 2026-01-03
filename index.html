@@ -1,108 +1,88 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <title>我的 3D 模型時鐘</title>
-    <style>
-        body { margin: 0; background-color: #000; overflow: hidden; }
-        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 10; font-family: sans-serif; }
-    </style>
-</head>
-<body>
-
-<div id="loading">正在讀取 3D 模型...</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-
 <script>
-    let scene, camera, renderer, hourHand, minuteHand, secondHand;
+let scene, camera, renderer;
+let hourHand, minuteHand, secondHand;
+let loader;
 
-    init();
+init();
+animate();
 
-    function init() {
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 2, 10);
+function init() {
+    scene = new THREE.Scene();
 
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(0, 2, 10);
 
-        // 光源設定
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(5, 10, 7.5);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-        const loader = new THREE.GLTFLoader();
-        loader.load('2025-11-12-099.glb', function (gltf) {
-            const model = gltf.scene;
-            scene.add(model);
-            document.getElementById('loading').style.display = 'none';
+    // 光源
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(5, 10, 7.5);
+    scene.add(light);
 
-            // --- 這裡修改為你在 Blender 裡設定的名稱 ---
-            // 假設你命名為 Hour, Minute, Second
-            hourHand = model.getObjectByName('Hour');
-            minuteHand = model.getObjectByName('Minute');
-            secondHand = model.getObjectByName('Second');
+    // 控制器
+    new THREE.OrbitControls(camera, renderer.domElement);
 
-            // 如果沒反應，取消下面這行的註解來查看模型裡到底有哪些名稱
-            // model.traverse(n => { if(n.isMesh) console.log("物件名稱:", n.name) });
+    // Loader（只宣告一次）
+    loader = new THREE.GLTFLoader();
+    loader.load('2025-11-12-099.glb', (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
 
-            animate();
-        });
+        document.getElementById('loading').style.display = 'none';
 
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    }
+        // 對應你模型裡的名稱
+        hourHand   = model.getObjectByName('Hour');
+        minuteHand = model.getObjectByName('Mouth');
+        secondHand = model.getObjectByName('Sphere');
 
-    function animate() {
-        requestAnimationFrame(animate);
+        // 偵錯用：列出所有 Mesh 名稱
+        // model.traverse(o => { if (o.isMesh) console.log(o.name); });
 
-        const now = new Date();
-        const s = now.getSeconds();
-        const m = now.getMinutes();
-        const h = now.getHours();
-
-        // 旋轉計算 (弧度制)
-        // 注意：如果指針旋轉方向不對，請嘗試將 .rotation.z 改為 .x 或 .y
-        if (secondHand) {
-            secondHand.rotation.z = - (s * (Math.PI / 30));
+        if (hourHand && minuteHand && secondHand) {
+            console.log('✅ 指針物件已成功連結');
+        } else {
+            console.warn('⚠️ 有物件名稱找不到，請確認 Blender 命名');
         }
-        if (minuteHand) {
-            minuteHand.rotation.z = - (m * (Math.PI / 30));
-        }
-        if (hourHand) {
-            hourHand.rotation.z = - ((h % 12) * (Math.PI / 6) + m * (Math.PI / 360));
-        }
-
-        renderer.render(scene, camera);
-    }
-
-    window.addEventListener('resize', () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
     });
-    loader.load('2025-11-12-099.glb', function (gltf) {
-            const model = gltf.scene;
-            scene.add(model);
-            
-            // 這裡我直接對應你模型中現有的物件名稱來測試
-            hourHand = model.getObjectByName('Hour');    // 暫時讓 Hour 當時針
-            minuteHand = model.getObjectByName('Mouth'); // 暫時讓 Mouth 當分針
-            secondHand = model.getObjectByName('Sphere'); // 暫時讓 Sphere 當秒針
 
-            if(hourHand && minuteHand && secondHand) {
-                console.log("成功連結物件！時鐘準備運作。");
-            } else {
-                console.log("找不到指定物件，請檢查名稱是否完全正確。");
-            }
+    window.addEventListener('resize', onResize);
+}
 
-            animate();
-        });
+function animate() {
+    requestAnimationFrame(animate);
+
+    const now = new Date();
+    const s = now.getSeconds();
+    const m = now.getMinutes();
+    const h = now.getHours();
+
+    // 旋轉（Z 軸為常見時鐘）
+    if (secondHand) {
+        secondHand.rotation.z = -s * Math.PI / 30;
+    }
+    if (minuteHand) {
+        minuteHand.rotation.z = -m * Math.PI / 30;
+    }
+    if (hourHand) {
+        hourHand.rotation.z =
+            -((h % 12) * Math.PI / 6 + m * Math.PI / 360);
+    }
+
+    renderer.render(scene, camera);
+}
+
+function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 </script>
-</body>
-</html>
 
