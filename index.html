@@ -2,95 +2,112 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D時鐘修正版</title>
+    <title>3D 修正時鐘</title>
     <style>
-        body { margin: 0; background: #222; overflow: hidden; }
-        #info { position: absolute; top: 10px; width: 100%; text-align: center; color: white; pointer-events: none; }
+        body { margin: 0; background-color: #1a1a1a; overflow: hidden; }
+        #loading {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-family: sans-serif; z-index: 10;
+        }
     </style>
 </head>
 <body>
-    <div id="info">3D 時鐘運行中<br><small id="status">正在載入模型...</small></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<div id="loading">載入 3D 時鐘中...</div>
 
-    <script>
-        let scene, camera, renderer, hourHand, minuteHand, secondHand;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-        init();
+<script>
+let scene, camera, renderer, controls;
+let hourGroup, minuteGroup, secondGroup;
 
-        function init() {
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 0, 5);
+init();
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+function init() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 8);
 
-            // 光源優化
-            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-            const light = new THREE.DirectionalLight(0xffffff, 1);
-            light.position.set(5, 5, 5);
-            scene.add(light);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
 
-            new THREE.OrbitControls(camera, renderer.domElement);
+    // 光源設置
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+    scene.add(ambientLight);
+    const pointLight = new THREE.PointLight(0xffffff, 1);
+    pointLight.position.set(5, 5, 10);
+    scene.add(pointLight);
 
-            const loader = new THREE.GLTFLoader();
-            // 請確認檔名與路徑正確
-            loader.load('2025-11-12-099.glb', (gltf) => {
-                const model = gltf.scene;
-                scene.add(model);
-                document.getElementById('status').innerText = "模型載入成功";
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-                // 根據你上傳的模型內容，嘗試抓取可能的物件
-                // 如果你的分針在 Blender 叫 'Mouth'，這裡就維持 Mouth
-                hourHand = model.getObjectByName('Hour'); 
-                minuteHand = model.getObjectByName('Mouth'); 
-                secondHand = model.getObjectByName('Sphere'); 
+    const loader = new THREE.GLTFLoader();
+    loader.load('clock.glb', (gltf) => {
+        const model = gltf.scene;
+        scene.add(model);
+        document.getElementById('loading').style.display = 'none';
 
-                // 如果找不到，列印出所有名稱幫你除錯
-                model.traverse(child => {
-                    if (child.isMesh) console.log("發現物件名稱:", child.name);
-                });
+        // 建立群組來校正旋轉軸心 (解決指針亂跑的問題)
+        hourGroup = new THREE.Group();
+        minuteGroup = new THREE.Group();
+        secondGroup = new THREE.Group();
+        
+        scene.add(hourGroup, minuteGroup, secondGroup);
 
-                animate();
-            }, undefined, (e) => {
-                document.getElementById('status').innerText = "載入失敗: " + e;
-            });
-        }
+        // 獲取模型中的物件
+        const h = model.getObjectByName('Hour');
+        const m = model.getObjectByName('Mouth.001');
+        const s = model.getObjectByName('Sphere');
 
-        function animate() {
-            requestAnimationFrame(animate);
+        // 將物件移入群組，這樣我們可以統一控制群組旋轉
+        if(h) hourGroup.add(h);
+        if(m) minuteGroup.add(m);
+        if(s) secondGroup.add(s);
 
-            const now = new Date();
-            const h = now.getHours() % 12;
-            const m = now.getMinutes();
-            const s = now.getSeconds();
+        animate();
+    });
 
-            // 旋轉計算 (弧度制)
-            // 假設你的模型是面向 Z 軸，旋轉軸應為 Y (如果是平放) 或 X/Z
-            // 這裡修正為常見的 Z 軸旋轉
-            if (secondHand) {
-                secondHand.rotation.z = -s * (Math.PI / 30);
-            }
-            if (minuteHand) {
-                minuteHand.rotation.z = -(m * 6 + s * 0.1) * (Math.PI / 180);
-            }
-            if (hourHand) {
-                hourHand.rotation.z = -(h * 30 + m * 0.5) * (Math.PI / 180);
-            }
+    window.addEventListener('resize', onResize);
+}
 
-            renderer.render(scene, camera);
-        }
+function onResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+function animate() {
+    requestAnimationFrame(animate);
+
+    const now = new Date();
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const ms = now.getMilliseconds();
+
+    // 旋轉計算：
+    // 每秒 360/60 = 6度
+    // 每分 360/60 = 6度
+    // 每小時 360/12 = 30度
+    
+    if (secondGroup) {
+        secondGroup.rotation.z = -((s + ms/1000) * (Math.PI / 30));
+    }
+    if (minuteGroup) {
+        minuteGroup.rotation.z = -((m * 6 + s * 0.1) * (Math.PI / 180));
+    }
+    if (hourGroup) {
+        hourGroup.rotation.z = -((h % 12 * 30 + m * 0.5) * (Math.PI / 180));
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+</script>
 </body>
 </html>
+
