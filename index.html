@@ -55,70 +55,55 @@
             controls = new OrbitControls(camera, renderer.domElement);
 
             // 6. 載入 GLB 模型
-            const loader = new GLTFLoader();
-            loader.load('./clock.glb', (gltf) => {
-                const model = gltf.scene;
-                scene.add(model);
-                document.getElementById('info').innerText = '現實時間同步中';
+          // ... (前面 scene, camera 設定保持不變)
 
-                // 根據你模型內部的命名抓取物件 (Node Name)
-                // 註：若抓不到，請確認模型內的物件名稱是否為 "Hour", "Minute", "Second"
-                hourHand = model.getObjectByName('Hour');
-                minuteHand = model.getObjectByName('Minute');
-                secondHand = model.getObjectByName('Second');
+let hourHand, minuteHand, secondHand;
 
-                // 自動調整模型中心
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                model.position.sub(center);
+const loader = new GLTFLoader();
+loader.load('./clock.glb', (gltf) => {
+    const model = gltf.scene;
+    scene.add(model);
 
-                animate();
-            }, undefined, (error) => {
-                console.error(error);
-                document.getElementById('info').innerText = '模型載入失敗，請確認路徑';
-            });
+    // 關鍵修正：根據你的 GLB 元數據，名稱通常是 "Hour", "Minute", "Second"
+    // 注意：JavaScript 對大小寫很敏感
+    hourHand = model.getObjectByName('Hour');
+    minuteHand = model.getObjectByName('Minute');
+    secondHand = model.getObjectByName('Second');
 
-            window.addEventListener('resize', onWindowResize);
-        }
+    // 檢查是否抓到物件
+    if(!hourHand || !minuteHand || !secondHand) {
+        console.warn("找不到指針物件，請檢查模型內部的命名");
+    }
 
-        function updateClock() {
-            if (!hourHand || !minuteHand || !secondHand) return;
+    animate();
+}, undefined, (error) => {
+    console.error("載入失敗:", error);
+});
 
-            const now = new Date();
-            const hours = now.getHours() % 12;
-            const minutes = now.getMinutes();
-            const seconds = now.getSeconds();
-            const msec = now.getMilliseconds();
+function updateClock() {
+    if (!hourHand || !minuteHand || !secondHand) return;
 
-            // 計算旋轉角度 (弧度制)
-            // 秒針：每秒 6 度 (2 * PI / 60)
-            const sRad = -((seconds + msec / 1000) * (Math.PI / 30));
-            // 分針：每分鐘 6 度 + 秒針進度
-            const mRad = -((minutes * 6 + seconds / 10) * (Math.PI / 180));
-            // 時針：每小時 30 度 + 分針進度
-            const hRad = -((hours * 30 + minutes / 2) * (Math.PI / 180));
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    const msec = now.getMilliseconds();
 
-            // 套用旋轉 (假設模型預設朝上，繞 Z 軸旋轉)
-            // 視你的模型軸向，可能需要調整為 .rotation.y 或 .rotation.x
-            secondHand.rotation.z = sRad;
-            minuteHand.rotation.z = mRad;
-            hourHand.rotation.z = hRad;
-        }
+    // 1. 計算旋轉角度 (弧度)
+    // 秒針：每秒 6 度
+    const sAngle = (seconds + msec / 1000) * (Math.PI / 30);
+    // 分針：每分 6 度 + 秒針補償
+    const mAngle = (minutes * 6 + seconds / 10) * (Math.PI / 180);
+    // 時針：每小時 30 度 + 分針補償
+    const hAngle = ((hours % 12) * 30 + minutes / 2) * (Math.PI / 180);
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            updateClock();
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        init();
-    </script>
-</body>
-</html>
+    // 2. 修正旋轉軸向
+    // 如果你的秒針「轉錯方向」或是「歪了」，通常是因為 3D 空間的 XYZ 軸與你想像的不同
+    // 嘗試切換這裡的 .rotation.z 到 .rotation.y 或 .rotation.x
+    // 大多數 GLB 模型在 Three.js 中是繞著 Z 軸轉動（面朝相機）
+    
+    // 請將下列的 '-' 符號根據你的模型導向調整（順時針 vs 逆時針）
+    secondHand.rotation.z = -sAngle;
+    minuteHand.rotation.z = -mAngle;
+    hourHand.rotation.z = -hAngle;
+}
