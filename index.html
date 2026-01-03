@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>3D 咕咕鐘</title>
+    <title>3D 咕咕鐘 - 修正版</title>
     <style>
         body { margin: 0; background-color: #222; overflow: hidden; }
         #loading {
@@ -16,49 +16,55 @@
 
 <div id="loading">模型載入中...</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
 let scene, camera, renderer, controls;
-let hourHand, minuteHand, secondHand;
+let hourGrp, minGrp, secGrp;
 
 init();
 
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0, 8);
+    camera.position.set(0, 0, 5); // 稍微拉近
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     document.body.appendChild(renderer.domElement);
 
-    // 光源強化
-    scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+    const dLight = new THREE.DirectionalLight(0xffffff, 1);
+    dLight.position.set(5, 5, 5);
+    scene.add(dLight);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     const loader = new THREE.GLTFLoader();
-    // ⚠️ 確保你的 GitHub 上檔案名稱真的是 clock.glb
     loader.load('clock.glb', (gltf) => {
         const model = gltf.scene;
         scene.add(model);
         document.getElementById('loading').style.display = 'none';
 
-        // 根據你最新的 clock.glb 物件名稱匹配
-        secondHand = model.getObjectByName('Second');
-        minuteHand = model.getObjectByName('Mouth');
-        hourHand   = model.getObjectByName('Hour');
+        // 創建旋轉容器，解決指針中心點不對的問題
+        hourGrp = new THREE.Group();
+        minGrp = new THREE.Group();
+        secGrp = new THREE.Group();
+        scene.add(hourGrp, minGrp, secGrp);
 
-        // 檢查是否抓到物件
-        console.log("時針:", hourHand, "分針:", minuteHand, "秒針:", secondHand);
+        const h = model.getObjectByName('Hour');
+        const m = model.getObjectByName('Mouth');
+        const s = model.getObjectByName('Second');
+
+        // 將指針移入容器（這裡會自動繼承模型位置）
+        if(h) hourGrp.add(h);
+        if(m) minGrp.add(m);
+        if(s) secGrp.add(s);
 
         animate();
-    }, undefined, (err) => {
-        document.getElementById('loading').innerText = "載入失敗: " + err;
     });
 }
 
@@ -66,27 +72,23 @@ function animate() {
     requestAnimationFrame(animate);
 
     const now = new Date();
-    const h = now.getHours();
+    const h = now.getHours() % 12;
     const m = now.getMinutes();
     const s = now.getSeconds();
     const ms = now.getMilliseconds();
 
-    // 旋轉角度計算 (弧度)
-    // 注意：若方向相反，請將其中的「-」改為「+」
-    if (secondHand) {
-        // 秒針：每秒轉 6 度 (Math.PI / 30)
-        secondHand.rotation.y = -((s + ms/1000) * (Math.PI / 30));
+    // 修正旋轉軸為 Z (面向觀眾旋轉)
+    if (secGrp) {
+        secGrp.rotation.z = -((s + ms/1000) * (Math.PI / 30));
     }
-    if (minuteHand) {
-        // 分針：每分轉 6 度
-        minuteHand.rotation.y = -((m + s/60) * (Math.PI / 30));
+    if (minGrp) {
+        minGrp.rotation.z = -((m + s/60) * (Math.PI / 30));
     }
-    if (hourHand) {
-        // 時針：每小時轉 30 度
-        hourHand.rotation.y = -((h % 12 + m/60) * (Math.PI / 6));
+    if (hourGrp) {
+        hourGrp.rotation.z = -((h + m/60) * (Math.PI / 6));
     }
 
-    if (controls) controls.update();
+    controls.update();
     renderer.render(scene, camera);
 }
 
@@ -98,7 +100,3 @@ window.addEventListener('resize', () => {
 </script>
 </body>
 </html>
-
-
-
-
