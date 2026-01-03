@@ -76,9 +76,9 @@ function init() {
 
             document.getElementById('loading').style.display = 'none';
 
-            hourHand   = model.getObjectByName('Hour');
-            minuteHand = model.getObjectByName('Mouth');
-            secondHand = model.getObjectByName('Sphere');
+            Hour  = model.getObjectByName('Hour');
+           Mouth = model.getObjectByName('Mouth');
+            Sphere = model.getObjectByName('Sphere');
 
             // 列出模型內所有名稱（超重要）
             model.traverse(o => {
@@ -123,5 +123,6 @@ function onResize() {
 
 </body>
 </html>
+
 
 
